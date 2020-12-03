@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
         String key = encryptionService.getMD5(fileName+System.currentTimeMillis());
         File file = new File(UPLOADED_FOLDER+fileName);
         if(file.exists()) {
-            executor.submit(() -> notificationService.generateNotificationsFromFile(file, key));
+            executor.submit(() -> notificationService.generateNotificationsFromFile(fileName, key, 0, System.currentTimeMillis()));
             ObjectNode response = objectMapperService.getObjectMapper().createObjectNode();
             response.put("key", key);
             return ResponseEntity.ok().body(response);

@@ -2,6 +2,7 @@ package com.notification_service.backend.Jobs;
 
 import com.notification_service.backend.Objects.Notification;
 import com.notification_service.backend.Services.InternalServices.ConfigLoaderServiceImpl;
+import com.notification_service.backend.Services.InternalServices.NotificationServiceImpl;
 import com.notification_service.backend.Services.InternalServices.ObjectMapperServiceImpl;
 import com.notification_service.backend.Services.InternalServices.TemplateServiceImpl;
 import lombok.SneakyThrows;
@@ -19,13 +20,26 @@ import java.util.Date;
     @Autowired private TemplateServiceImpl templateService;
     @Autowired private ConfigLoaderServiceImpl configLoaderService;
     @Autowired private ObjectMapperServiceImpl objectMapperService;
+    @Autowired private NotificationServiceImpl notificationService;
 
     @SneakyThrows @Override public void execute(JobExecutionContext jobExecutionContext) {
         System.out.println("============================================================================================================================================================================================================================");
         JobDataMap jobDataMap = jobExecutionContext.getJobDetail().getJobDataMap();
         Notification notification = objectMapperService.getObjectMapper().readValue(jobDataMap.get("notification").toString(), Notification.class);
+
         sendNotification(notification);
+
+        long currentNotificationNumber = jobDataMap.getLongValue("notificationNumber");
+        long initJobStartTime = jobDataMap.getLongValue("initJobStartTime");
+        String filename = jobDataMap.getString("filename");
+        String key = jobDataMap.getString("key");
+        prepareNextNotification(filename, key, currentNotificationNumber, initJobStartTime);
+
         System.out.println("============================================================================================================================================================================================================================");
+    }
+
+    private void prepareNextNotification(String filename, String key, long currentNotificationNumber, long initJobStartTime) {
+        notificationService.generateNotificationsFromFile(filename, key, currentNotificationNumber+1, initJobStartTime);
     }
 
     private void sendNotification(Notification notification) throws NoSuchFieldException, IllegalAccessException {
